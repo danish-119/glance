@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: the sample-data switch for recording the store video. Never in release. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The demo wallpaper for recordings. -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <application>
+        <receiver
+            android:name="app.screenbalance.DemoReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="app.screenbalance.DEMO" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
