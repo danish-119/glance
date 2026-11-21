@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Glance</string>
+    <string name="accessibility_service_label">Glance</string>
+    <string name="accessibility_service_summary">Closes Reels, Shorts and other endless feeds, and applies your app limits, quiet hours and focus sessions.</string>
+    <string name="accessibility_service_description">Glance uses this service to recognise which screen is open in Instagram, YouTube, Facebook and Snapchat, so it can close the parts you chose (such as Reels, Shorts and Explore). For every other app, including TikTok, X and Reddit, it only notices which app comes to the front, by name, to apply your daily limits, quiet hours, focus sessions and the pause before opening. Everything is processed on this device; your messages, posts and screen content are never stored or sent. During a focus session or quiet hours it also watches the Settings app so that this protection cannot be switched off until they end.</string>
+    <string name="widget_name">Screen time today</string>
+    <string name="widget_description">Today\'s screen time and your most used apps</string>
+    <string name="widget_kicker">SCREEN TIME TODAY</string>
+    <string name="widget_placeholder">0m</string>
+    <string name="goal_widget_name">Daily goal</string>
+    <string name="goal_widget_description">How much of your daily screen-time goal is left, and your streak</string>
+    <string name="goal_widget_kicker">DAILY GOAL</string>
+    <string name="widget_note">Allow usage access in Glance to see your apps</string>
+    <string name="notification_gate_label">Glance: hold notifications of closed apps</string>
+</resources>
