@@ -39,6 +39,7 @@ Use a phone with current versions of the apps from the Play Store, signed in to 
 | 9 | YouTube: tap Shorts; open a Short from the home shelf or search | A blank cover (no sound), then Subscriptions (or Home); normal videos play |
 | 10 | Facebook: tap Reels or Video; open a Reel from the feed | A blank cover, then Home; feed, groups and profiles open |
 | 11 | Snapchat: swipe to Spotlight | A blank cover, then Chat (or Camera); chats, camera and stories open |
+| 9b | YouTube on a slow connection: tap Shorts while the feed is still loading | Still moved away within about 3 s; the Short never keeps playing |
 | 12 | Switch "YouTube Shorts" off in Rules | Shorts plays normally |
 
 ### Every app
@@ -61,7 +62,9 @@ Use a phone with current versions of the apps from the Play Store, signed in to 
 | 23b | Leave the widget overnight; first unlock after midnight | Shows the new day (near 0), never yesterday's total |
 | 23c | Add the "Daily goal" widget, no goal → set a 2 h goal | "No goal yet" → a full ring at 100% and "… left / of 2 h" right after setting it; the ring empties as the phone is used; a full ember ring, "over" and "… over" past the goal; tap opens Today |
 | 23d | Today → ‹ arrow, tap a bar, tap an app | Earlier week's bars; that day's total and apps; the app's page with its week, total, daily average and limit |
-| 23e | Insights tab with usage access | Daily average vs the week before, share of day, hour chart (tap a bar), pickups, top apps (tap opens the app page), kinds of apps, last 4 weeks once there is data |
+| 23e | Insights tab with usage access → Week | Daily average vs the week before, day-by-day bars against the goal, at-a-glance grid, hour chart and parts of the day, habits, most used apps (tap opens the app page) |
+| 23e2 | Insights → Day; tap a bar in Week; switch Day ↔ Week | One day's total vs your usual day, hour chart, pickups, apps. Each tap switches once, with no flicker back to the other view |
+| 23g | Today during a focus session or quiet hours | The active panel spans the full page width, like the cards around it |
 | 23f | Weekly summary on; Monday after 9:00 unlock | One notification with last week's average; tap opens Insights. Off in Settings → nothing |
 | 24 | Limits, Pause, Apps that close: type in the search box | The list narrows to matching apps; Phone, Messages, Maps etc. show an (i) explaining they can't be limited or closed; Snapchat and WhatsApp can be limited and paused |
 | 25 | Reminder 5 min | "5 min on YouTube" after 5 min in YouTube, again at 10; switching to another app, going home or locking starts it over |
@@ -76,5 +79,9 @@ Use a phone with current versions of the apps from the Play Store, signed in to 
 | 29 | Dark mode, large font (200%), TalkBack | All screens readable; toggles announce state |
 | 30 | Battery: 1 h of normal use with quiet hours set and the pause on | Glance < 3% in Battery usage |
 | 31 | Android 8, 10, 12, 14, 15/16 (emulator + one real device each where possible) | 1–30 pass |
+
+### Demo data for screenshots
+
+Debug builds accept sample usage, so Today, Insights and limits look realistic on an emulator. See [Demo data](ARCHITECTURE.md#demo-data-debug-builds-only). Turn it off (`--ez off true`) before testing real usage. Release builds ignore it.
 
 When a case fails inside an app, dump its screen with `adb shell uiautomator dump /sdcard/dump.xml && adb pull /sdcard/dump.xml` and attach it (and the app version) to the bug.

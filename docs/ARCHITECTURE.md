@@ -66,7 +66,19 @@ The overlay goes up first and the app is moved underneath it; the cover lifts on
 
 ### Usage history and Insights
 
-`ScreenTime` reads today live from UsageStats (one read shared for 10 s by Today and both widgets). `UsageHistory` summarises a day from the usage events in one pass: time and opens per app, time per hour, unlocks (`KEYGUARD_HIDDEN`), first pickup and longest visit. Finished days are saved in `stats.db` (`app_day`, `day_info`) because Android keeps that detail for only about a week; the service saves the days Android still has at the first unlock of each day. Everything is kept 90 days and cleared with "Clear usage history". `Insights` is pure arithmetic over 28 `DaySummary`s (this week, the week before, four weekly totals). `GoalStreak` counts days within the daily goal, the same for Today and the goal widget. `WeeklySummaryReceiver` posts Monday's summary from the same data (an inexact, non-wakeup alarm rescheduled each time).
+`ScreenTime` reads today live from UsageStats (one read shared for 10 s by Today and both widgets). `UsageHistory` summarises a day from the usage events in one pass: time and opens per app, time per hour, unlocks (`KEYGUARD_HIDDEN`), first pickup and longest visit. Finished days are saved in `stats.db` (`app_day`, `day_info`) because Android keeps that detail for only about a week; the service saves the days Android still has at the first unlock of each day. Everything is kept 90 days and cleared with "Clear usage history". `Insights` is pure arithmetic over 28 `DaySummary`s (this week, the week before, four weekly totals). The Insights screen has two views. **Week** shows the daily average against the week before, day-by-day bars against the goal (tap one for that day), an at-a-glance grid (total, days within the goal, unlocks, apps opened, average visit, first pickup), the hour chart and parts of the day, habits and the most used apps. **Day** shows one day: its total against your usual day, the goal, the hour chart, pickups (unlocks, apps opened, first pickup, longest visit) and its apps. Opens per app are still recorded but appear only as these totals, not per app. `GoalStreak` counts days within the daily goal, the same for Today and the goal widget. `WeeklySummaryReceiver` posts Monday's summary from the same data (an inexact, non-wakeup alarm rescheduled each time).
+
+### Demo data (debug builds only)
+
+`DemoMode` holds sample usage for recording the store video and screenshots on an emulator. The debug-only `DemoReceiver` (`src/debug`) writes 28 days of `DaySummary`s and today's per-app times:
+
+```sh
+adb shell am broadcast -a app.screenbalance.DEMO -p app.screenbalance.debug --es pkgs "com.google.android.youtube,com.android.chrome" --ei goal 180
+adb shell am broadcast -a app.screenbalance.DEMO -p app.screenbalance.debug --ez off true
+adb shell am broadcast -a app.screenbalance.DEMO -p app.screenbalance.debug --ez wallpaper true
+```
+
+While it is on, `ScreenTime`, `Insights` and `AppUsage.foregroundByPackage` read the sample instead of UsageStats, so daily limits lock on the sample time too. Every check goes through `BuildConfig.DEBUG`, which is a constant `false` in release, so R8 removes it and the receiver isn't in the release manifest.
 
 ### Widgets
 
@@ -94,6 +106,7 @@ widget/     The "Screen time today" and "Daily goal" home-screen widgets (Remote
 - **Single Reels.** A Reel opened from DMs, a profile or a post plays; the first page change of the pager (after a 600 ms positioning window) counts as a swipe; the pager is scrolled straight back to that Reel under a cover, without pausing its sound (profile as a fallback).
 - **Instagram's Home is open or closed, and always ends at "caught up".** Reaching "You've completely caught up", or scrolling past it via "View older posts", jumps the feed back to the top.
 - **Redirect, don't lecture.** Sections show no lock screen: Reels and a closed Home → profile; the Search tab → search box; Shorts → Subscriptions or Home; Facebook Reels/Video → Home; Spotlight → Chat or Camera; Back as the fallback. Only whole-app closures and the Settings guard show a lock screen, with an OK button and the time it ends.
+- **Look again after a move.** After a redirect the service checks the screen again at 0.7, 1.5 and 3 s (`recheckSoon`). A feed that was still loading when the cover lifted (a black Shorts page, say) can start playing without sending another accessibility event, and waiting for the 5-second heartbeat would let it play.
 - **Blocked means blocked.** There is no "continue anyway" and no self-granted free time.
 - **One set of shared controls.** Quiet hours, focus sessions and notification holding apply to every app together; only daily limits are per app.
 - **Every app, but only by name.** For apps other than Instagram, YouTube, Facebook and Snapchat, the service reads nothing but the package name of the app in front. It asks Android for events from every app (`serviceInfo.packageNames = null`) only while the pause or the reminder is on, an app limit exists, or quiet hours / a focus session apply to apps beyond the watched ones; otherwise events are limited to the watched apps and Settings.
