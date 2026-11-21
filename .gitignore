@@ -1,0 +1,45 @@
+# --- Secrets: never commit (needed for every Play update; back them up elsewhere) ---
+keystore.properties
+keys/
+*.jks
+*.keystore
+*.p12
+*.pem
+google-services.json
+play-service-account*.json
+
+# --- Local machine config ---
+local.properties
+
+# --- Gradle / Kotlin build output ---
+.gradle/
+.kotlin/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Built artifacts ---
+*.apk
+*.aab
+*.ap_
+*.dex
+output-metadata.json
+mapping.txt
+
+# --- IDEs ---
+.idea/
+*.iml
+.vscode/
+.fleet/
+.project
+.classpath
+.settings/
+
+# --- OS / misc ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.hprof
+*.tmp
