@@ -23,8 +23,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
- * Home-screen goal widget: the day's screen-time budget as a ring that empties as the phone is used
- * (the percentage left in the middle; a full ember ring once over), what's left, and the streak. Without a goal it invites setting one. Tapping opens Today.
+ * Home-screen goal widget: the day's screen-time goal as a ring that fills as the phone is used
+ * (the percentage used in the middle; a full ember ring once over), what's left, and the streak. Without a goal it invites setting one. Tapping opens Today.
  * Refreshed with [ScreenTimeWidget] (unlock, screen-off, midnight, every 30 minutes) and when the goal changes.
  */
 class GoalWidget : AppWidgetProvider() {
@@ -64,19 +64,19 @@ class GoalWidget : AppWidgetProvider() {
             val goalMs = goal * 60_000L
             val views = RemoteViews(context.packageName, R.layout.widget_goal)
 
-            // A budget, not a target: the ring starts full and empties as the day's screen time is used.
-            // Past the goal it shows a full ember ring.
+            // The ring starts empty and fills as the day's screen time is used; the middle shows how much
+            // of the goal is used. Past the goal it is a full ember ring.
             val ink = context.getColor(R.color.widget_ink)
             val ember = context.getColor(R.color.widget_ember)
             val over = goal > 0 && used > goalMs
-            val left = if (goal > 0) (1f - used / goalMs.toFloat()).coerceIn(0f, 1f) else 0f
-            views.setImageViewBitmap(R.id.goal_ring, ring(context, if (over) 1f else left, if (over) ember else ink))
+            val usedPart = if (goal > 0) (used / goalMs.toFloat()).coerceIn(0f, 1f) else 0f
+            views.setImageViewBitmap(R.id.goal_ring, ring(context, if (over) 1f else usedPart, if (over) ember else ink))
             views.setTextViewText(
                 R.id.goal_percent,
                 when {
                     goal <= 0 -> ""
                     over -> "over"
-                    else -> "${(left * 100).toInt()}%"
+                    else -> "${(usedPart * 100).toInt()}%"
                 },
             )
 
