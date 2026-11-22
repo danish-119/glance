@@ -1,5 +1,6 @@
 package app.screenbalance.service
 
+import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
 import android.os.Handler
@@ -28,8 +29,9 @@ import java.time.ZonedDateTime
 /**
  * Holds back notifications by snoozing them, so Android shows them later: every app's during quiet
  * hours and focus sessions (until they end), and an app's own after its daily limit is used up
- * (until midnight). The essentials (calls, messages, …) always notify. Only the posting app's
- * package name is examined; notification content is never read.
+ * (until midnight). The essentials (calls, messages, …) always notify, and so does a ringing or
+ * ongoing call from any app. Only the posting app's package name and the notification's category
+ * (is it a call?) are examined; notification content is never read.
  */
 class NotificationGate : NotificationListenerService() {
 
@@ -44,7 +46,8 @@ class NotificationGate : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         system = SystemApps(this)
-        val s = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).also { scope = it }
+        scanCalls()
+        val s =CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).also { scope = it }
         s.launch {
             combine(
                 container.settings.settings.filterNotNull(),
@@ -68,12 +71,40 @@ class NotificationGate : NotificationListenerService() {
         main.removeCallbacksAndMessages(null)
         scope?.cancel()
         scope = null
+        callKeys.clear()
+        ServiceBridge.setCallNotified(false)
         super.onListenerDisconnected()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        if (isCall(sbn)) {
+            // A call always rings, whatever app it comes from; the pause and reminders step aside.
+            callKeys += sbn.key
+            ServiceBridge.setCallNotified(true)
+            return
+        }
         val until = untilFor(sbn.packageName, closed()) ?: return
         snooze(sbn, until)
+    }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification) {
+        if (callKeys.remove(sbn.key) && callKeys.isEmpty()) ServiceBridge.setCallNotified(false)
+    }
+
+    /** Ringing and ongoing calls of any app (the phone, WhatsApp, Signal, …). Missed-call notices are not. */
+    private val callKeys = HashSet<String>()
+
+    private fun isCall(sbn: StatusBarNotification): Boolean {
+        val n = sbn.notification
+        return n.category == Notification.CATEGORY_CALL &&
+            (n.fullScreenIntent != null || n.flags and Notification.FLAG_ONGOING_EVENT != 0)
+    }
+
+    private fun scanCalls() {
+        val active = try { activeNotifications } catch (e: RuntimeException) { null } ?: return
+        callKeys.clear()
+        active.filter(::isCall).mapTo(callKeys) { it.key }
+        ServiceBridge.setCallNotified(callKeys.isNotEmpty())
     }
 
     /** Snooze anything already showing (e.g. when a window starts), then wake at the next start. */
@@ -83,7 +114,7 @@ class NotificationGate : NotificationListenerService() {
         val closed = closed()
         if (closed.everyApp != null || closed.byLimit.isNotEmpty()) {
             val active = try { activeNotifications } catch (e: RuntimeException) { null }
-            active?.forEach { sbn -> untilFor(sbn.packageName, closed)?.let { snooze(sbn, it) } }
+            active?.forEach { sbn -> if (!isCall(sbn)) untilFor(sbn.packageName, closed)?.let { snooze(sbn, it) } }
         }
         val now = ZonedDateTime.now(ZoneId.systemDefault())
         val next = ScheduleMath.nextStart(s.schedules, now) ?: return
