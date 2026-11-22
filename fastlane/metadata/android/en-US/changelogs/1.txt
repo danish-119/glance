@@ -1,0 +1,1 @@
+First release: short-video blocking, daily app limits, pause before opening, focus sessions, quiet hours, strict mode, reminders, Insights, widgets and a weekly summary.

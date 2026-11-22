@@ -1,0 +1,37 @@
+<p><b>Use your phone on purpose: a glance, not an hour.</b></p>
+
+<p>Glance works alongside the apps you already use. It closes the parts built to keep you scrolling, such as Reels, Shorts, Spotlight and Explore, and gives every app on the phone the time you choose for it. Messages, calls, maps and the things you came for stay open.</p>
+
+<p><b>Closes the endless feeds, keeps the rest</b></p>
+<ul>
+<li>Instagram: Reels and Explore closed (optionally the Home feed); messages, profiles, search and stories stay open.</li>
+<li>YouTube: Shorts closed; videos, search and subscriptions stay open.</li>
+<li>Facebook: Reels and Video closed; feed, groups and profiles stay open.</li>
+<li>Snapchat: Spotlight closed; chats, camera, stories and map stay open.</li>
+<li>TikTok, X and Reddit can be limited as whole apps.</li>
+</ul>
+
+<p><b>For every app</b></p>
+<ul>
+<li><b>Daily limits:</b> a time per app; when it's used up, the app closes until midnight.</li>
+<li><b>Emergency access:</b> any locked app opens for 5 minutes, 3 times a day.</li>
+<li><b>Pause before opening:</b> an optional 10-second pause before chosen apps open.</li>
+<li><b>Focus sessions:</b> 25 to 120 minutes with distracting apps closed and notifications held.</li>
+<li><b>Quiet hours:</b> scheduled windows that close chosen apps and hold notifications.</li>
+<li><b>Strict mode:</b> optional; rules can only get stricter while a session or quiet hours are on.</li>
+<li><b>Reminders:</b> a card over the app after 5 to 30 minutes in it.</li>
+<li><b>Today and Insights:</b> screen time per app, a daily goal with a streak, and trends by hour, day and week.</li>
+<li><b>Widgets and weekly summary.</b></li>
+</ul>
+
+<p>Calls, messages, maps, the camera and other essentials are never blocked, and a call from any app always comes through.</p>
+
+<p><b>Private by design</b></p>
+<p>No account, no ads, no trackers and no internet permission: nothing Glance sees can leave the phone. For apps other than Instagram, YouTube, Facebook and Snapchat, Glance only uses the name of the app in front.</p>
+
+<p><b>Permissions</b></p>
+<ul>
+<li><b>Accessibility service</b> (required): to see which app and section is in front, and to close it. Glance is not an assistive tool.</li>
+<li><b>Usage access</b> (optional): per-app screen time and history.</li>
+<li><b>Notification access</b> (optional): to hold notifications during quiet hours, focus sessions and after a limit; content is never read.</li>
+</ul>

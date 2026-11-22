@@ -1,0 +1,4 @@
+• The pause no longer comes back while you stay in an app (holding or tapping a message, the keyboard, popups).
+• Calls from any app can always be answered: the pause, reminder and lock screen step aside.
+• The reminder is now a card over the app, distinct from the pause.
+• Screen time widget: refresh button. Goal widget: the ring fills as the day is used.
