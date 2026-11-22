@@ -39,16 +39,19 @@ class ScreenTimeWidget : AppWidgetProvider() {
         }
     }
 
-    /** The clock or time zone changed: "today" may be another day now. */
+    /** The clock or time zone changed ("today" may be another day now), or the refresh button was tapped. */
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-            Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_DATE_CHANGED -> {
+            Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_DATE_CHANGED, ACTION_REFRESH -> {
                 val pending = goAsync()
                 context.container.appScope.launch(Dispatchers.IO) {
                     try {
+                        // Tapped: read usage afresh rather than the few-seconds-old shared copy.
+                        if (intent.action == ACTION_REFRESH) context.container.screenTime.forget()
                         val manager = AppWidgetManager.getInstance(context)
                         val ids = manager.getAppWidgetIds(ComponentName(context, ScreenTimeWidget::class.java))
                         if (ids.isNotEmpty()) render(context, manager, ids)
+                        GoalWidget.refresh(context)
                     } finally {
                         pending.finish()
                     }
@@ -59,6 +62,9 @@ class ScreenTimeWidget : AppWidgetProvider() {
     }
 
     companion object {
+        /** The refresh button in the widget's top-right corner. */
+        private const val ACTION_REFRESH = "app.screenbalance.widget.REFRESH"
+
         /** Redraws every placed widget; does nothing when none is placed. */
         fun refresh(context: Context) {
             GoalWidget.refresh(context)
@@ -106,6 +112,11 @@ class ScreenTimeWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             views.setOnClickPendingIntent(R.id.widget_root, open)
+            val refresh = PendingIntent.getBroadcast(
+                context, 2, Intent(context, ScreenTimeWidget::class.java).setAction(ACTION_REFRESH),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            views.setOnClickPendingIntent(R.id.widget_refresh, refresh)
             manager.updateAppWidget(ids, views)
             scheduleMidnight(context, ScreenTimeWidget::class.java, ids, requestCode = 1)
         }

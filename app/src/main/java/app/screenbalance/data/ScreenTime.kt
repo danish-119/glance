@@ -34,6 +34,11 @@ class ScreenTime(private val context: Context, private val usage: AppUsage) {
         return value
     }
 
+    /** Drops the shared copy of today's totals, so the next read is fresh (the widget's refresh button). */
+    fun forget() {
+        synchronized(this) { todayCache = null }
+    }
+
     private class Cached(val day: LocalDate, val at: Long, val value: Map<String, Long>?)
     private var todayCache: Cached? = null
 

@@ -7,6 +7,7 @@
     <string name="widget_name">Screen time today</string>
     <string name="widget_description">Today\'s screen time and your most used apps</string>
     <string name="widget_kicker">SCREEN TIME TODAY</string>
+    <string name="widget_refresh">Refresh</string>
     <string name="widget_placeholder">0m</string>
     <string name="goal_widget_name">Daily goal</string>
     <string name="goal_widget_description">How much of your daily screen-time goal is left, and your streak</string>
