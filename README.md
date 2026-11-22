@@ -50,11 +50,11 @@ TikTok, X and Reddit can be limited as whole apps.
 - **Focus sessions:** 25 to 120 minutes with distracting apps closed and notifications held.
 - **Quiet hours:** scheduled windows, such as 10 PM to 7 AM, that close chosen apps and hold notifications.
 - **Strict mode:** optional; rules can only get stricter while a session or quiet hours are on.
-- **Reminders:** a nudge after 5 to 30 minutes in one app.
+- **Reminders:** a card over the app after 5 to 30 minutes in it.
 - **Today and Insights:** screen time per app, a daily goal with a streak, and trends by hour, day and week.
-- **Widgets and weekly summary:** screen time and goal on the home screen, and a recap every Monday.
+- **Widgets and weekly summary:** screen time (with a refresh button) and a goal ring on the home screen, and a recap every Monday.
 
-Calls, messages, maps, the camera and other essentials are never blocked.
+Calls, messages, maps, the camera and other essentials are never blocked. A call from any app (WhatsApp included) always rings, and the pause and reminders step aside so it can be answered.
 
 ## Requirements
 

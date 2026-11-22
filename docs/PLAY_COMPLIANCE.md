@@ -17,7 +17,7 @@ Apps that use `AccessibilityService` without being accessibility tools get extra
 1. **Permissions declaration → Accessibility API**: purpose "Digital wellbeing: closes user-selected distracting sections of Instagram, YouTube, Facebook and Snapchat (Reels, Shorts, Spotlight, Explore) while leaving messaging available, and applies the user's own daily app limits, quiet hours, focus sessions and a pause before opening apps. For apps other than those four, only the package name of the app in the foreground is used." The core functionality depends on the API.
 2. **Demo video**: show the disclosure, enabling the service, the Instagram Reels tab moving to the profile, a shared Reel playing, YouTube Shorts moving to Subscriptions, an app closing at its daily limit, quiet hours closing an app while Messages stays open, DMs working.
 3. **Data safety**: no data collected or shared. All processing on device.
-4. **Notification access** (`BIND_NOTIFICATION_LISTENER_SERVICE`): requested from the user; when granted it is used only to snooze notifications during the user's quiet hours and focus sessions, and an app's own after its daily limit. Essential apps (calls, messages) always notify. No notification content is read or stored.
+4. **Notification access** (`BIND_NOTIFICATION_LISTENER_SERVICE`): requested from the user; when granted it is used only to snooze notifications during the user's quiet hours and focus sessions, and an app's own after its daily limit. Essential apps (calls, messages) always notify, and so does any app's incoming or ongoing call (recognised by the notification's category alone). No notification content is read or stored.
 5a. **POST_NOTIFICATIONS**: only for the optional Monday weekly-summary notification; asked for when it is switched on.
 5. **Usage access** (`PACKAGE_USAGE_STATS`): optional, explained in onboarding; used for screen time per app on Today, app history and Insights (a daily summary per app, per hour and unlocks, stored on the device for 90 days).
 6. **Target API**: targetSdk 36.
@@ -33,7 +33,7 @@ Apps that use `AccessibilityService` without being accessibility tools get extra
 >
 > **Stored on your device.** Your settings and aggregate statistics per day (phone time, minutes per watched app and per app you gave a limit, minutes per Instagram section, and with usage access minutes and times opened per app, minutes per hour and the unlock count) are stored locally. Statistics older than 90 days are deleted automatically, and you can delete them any time in Settings. This data is excluded from backups.
 >
-> **Notification access.** If you allow notification access, Glance checks which app each new notification comes from. During quiet hours and focus sessions, notifications are snoozed until they end, and after an app's daily limit, that app's are snoozed until midnight. Calls and messages always come through. Notification content is never read, stored or sent.
+> **Notification access.** If you allow notification access, Glance checks which app each new notification comes from. During quiet hours and focus sessions, notifications are snoozed until they end, and after an app's daily limit, that app's are snoozed until midnight. Calls (from any app) and messages always come through. Notification content is never read, stored or sent.
 >
 > **Usage access (optional).** If you grant it, Glance reads apps' screen time from Android to show accurate totals.
 >

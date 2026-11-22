@@ -55,19 +55,21 @@ Use a phone with current versions of the apps from the Play Store, signed in to 
 | 17d | Daily goal 1 h | Today shows time left / over; next day "Yesterday was within your goal" if it was |
 | 18 | Quiet hours overnight 22:00–07:00 | Apps can't be opened across midnight; open again at 07:00 |
 | 19 | Notification access allowed; quiet hours or a focus session; then an app's limit used up | During quiet hours / focus no app's notifications show (calls and SMS do) and they appear when it ends; after a limit, only that app's wait until midnight |
-| 20 | Pause tab → on → All apps | Every app (not the home screen, keyboard, dialer or Glance) shows the 10-second pause; "Open" lets it through and skips it for a minute; "Not now" goes home. Pressing Home, Back or Recents during the pause removes it. No pause on permission dialogs or share sheets |
+| 20 | Pause tab → on → All apps | Every app (not the home screen, keyboard, dialer or Glance) shows the 10-second pause; "Open" lets it through: no pause again while in that app, nor for a minute after leaving it; "Not now" goes home. Pressing Home, Back or Recents during the pause removes it. No pause on permission dialogs or share sheets |
+| 20b | Pause on, in WhatsApp after "Open": long-press a message (reactions), tap a message, select text, open the keyboard, pull down the shade, wait > 1 min | No second pause, and the reminder does not start over |
+| 20c | Pause on: phone call and WhatsApp call arrive while the pause (or a reminder) is showing; also open WhatsApp from its incoming-call screen | The pause/reminder steps aside at once so the call can be answered; no pause over a call screen, nor right after the call ends; during quiet hours a WhatsApp call still rings and its call screen is not closed |
 | 21 | Pause tab → Chosen apps → only Instagram | Only Instagram is paused |
 | 22 | Today with usage access | "Screen time today" lists every app used today, most used first, with icons; the Focus session card at the bottom scrolls fully above the tab bar |
-| 23 | Add the "Screen time today" widget | Shows today's total and the top three apps (no limits), same numbers as Today; updates after unlocking; without usage access, the total and a note to allow it. Tap opens Glance |
+| 23 | Add the "Screen time today" widget | Shows today's total and the top three apps (no limits), same numbers as Today; updates after unlocking and on going home; the refresh button (top right) redraws it at once; without usage access, the total and a note to allow it. Tap opens Glance |
 | 23b | Leave the widget overnight; first unlock after midnight | Shows the new day (near 0), never yesterday's total |
-| 23c | Add the "Daily goal" widget, no goal → set a 2 h goal | "No goal yet" → a full ring at 100% and "… left / of 2 h" right after setting it; the ring empties as the phone is used; a full ember ring, "over" and "… over" past the goal; tap opens Today |
+| 23c | Add the "Daily goal" widget, no goal → set a 2 h goal | "No goal yet" → a nearly empty ring (today's use so far, in %) and "… left / of 2 h" right after setting it; the ring fills as the phone is used; a full ember ring, "over" and "… over" past the goal; tap opens Today |
 | 23d | Today → ‹ arrow, tap a bar, tap an app | Earlier week's bars; that day's total and apps; the app's page with its week, total, daily average and limit |
 | 23e | Insights tab with usage access → Week | Daily average vs the week before, day-by-day bars against the goal, at-a-glance grid, hour chart and parts of the day, habits, most used apps (tap opens the app page) |
 | 23e2 | Insights → Day; tap a bar in Week; switch Day ↔ Week | One day's total vs your usual day, hour chart, pickups, apps. Each tap switches once, with no flicker back to the other view |
 | 23g | Today during a focus session or quiet hours | The active panel spans the full page width, like the cards around it |
 | 23f | Weekly summary on; Monday after 9:00 unlock | One notification with last week's average; tap opens Insights. Off in Settings → nothing |
 | 24 | Limits, Pause, Apps that close: type in the search box | The list narrows to matching apps; Phone, Messages, Maps etc. show an (i) explaining they can't be limited or closed; Snapchat and WhatsApp can be limited and paused |
-| 25 | Reminder 5 min | "5 min on YouTube" after 5 min in YouTube, again at 10; switching to another app, going home or locking starts it over |
+| 25 | Reminder 5 min | "5 min on YouTube" after 5 min in YouTube, again at 10, as a card from the bottom over the dimmed app (not the full-screen pause); switching to another app, going home or locking starts it over; keyboards and popups inside the app do not |
 | 26 | Instagram Lite, TikTok, X, Reddit after their limit or in quiet hours | Opening goes home + lock card; otherwise they open |
 
 ### System
