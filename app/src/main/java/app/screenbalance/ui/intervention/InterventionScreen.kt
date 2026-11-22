@@ -72,7 +72,7 @@ class InterventionActions(
  * The lock screen, shown only when a whole app is closed (daily limit, quiet hours, focus) and for
  * the Settings guard: a lock, one line, when it ends, and OK. It appears
  * instantly, so the screen behind it is never visible. Also hosts the blank cover, the pause before
- * opening an app ([PauseScreen]) and the reminder ([NudgeScreen]).
+ * opening an app ([PauseScreen], full screen) and the reminder ([ReminderScreen], a card over the app).
  */
 @Composable
 fun InterventionScreen(state: InterventionState, actions: InterventionActions) {
@@ -83,10 +83,9 @@ fun InterventionScreen(state: InterventionState, actions: InterventionActions) {
             return
         }
         BlockReason.USE_REMINDER -> {
-            NudgeScreen(
-                headline = reminderHeadline(state.minutes, state.appLabel.orEmpty()),
-                detail = null,
-                breakLabel = "Take a break",
+            ReminderScreen(
+                minutes = state.minutes,
+                appLabel = state.appLabel.orEmpty(),
                 onKeepGoing = actions.onDismiss,
                 onBreak = actions.onLeave,
             )
