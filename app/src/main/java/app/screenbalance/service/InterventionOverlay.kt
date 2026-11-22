@@ -41,6 +41,9 @@ internal class InterventionOverlay(private val service: AccessibilityService) {
     private var owner: OverlayOwner? = null
 
     val isShowing: Boolean get() = root != null
+    /** A blank cover is up (it lifts by itself once the app underneath has been moved). */
+    val isCover: Boolean get() = root != null && shown?.coverOnly == true
+    private var shown: InterventionState? = null
 
     private val audio = service.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     /**
@@ -92,6 +95,7 @@ internal class InterventionOverlay(private val service: AccessibilityService) {
             wm.addView(container, params)
             root = container
             owner = o
+            shown = state
             if (state.pauseAudio && state.reason in SILENCE_FOR && !(state.coverOnly && state.reason == BlockReason.EXPLORE)) {
                 holdingFocus = audio.requestAudioFocus(focus) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             }
@@ -109,6 +113,7 @@ internal class InterventionOverlay(private val service: AccessibilityService) {
         }
         val r = root ?: return
         root = null
+        shown = null
         try {
             wm.removeViewImmediate(r)
         } catch (e: RuntimeException) {

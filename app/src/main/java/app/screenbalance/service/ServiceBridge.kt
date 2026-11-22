@@ -23,6 +23,11 @@ object ServiceBridge {
     private val _packageUsedTodayMs = MutableStateFlow<Map<String, Long>>(emptyMap())
     val packageUsedTodayMs: StateFlow<Map<String, Long>> = _packageUsedTodayMs.asStateFlow()
 
+    /** A call is ringing or under way in any app, going by its call notification (needs notification access). */
+    private val _callNotified = MutableStateFlow(false)
+    val callNotified: StateFlow<Boolean> = _callNotified.asStateFlow()
+    internal fun setCallNotified(value: Boolean) { _callNotified.value = value }
+
     internal fun setConnected(value: Boolean) { _connected.value = value }
     internal fun setUsedToday(used: Map<WatchedApp, Long>, packages: Map<String, Long>) {
         _usedTodayMs.value = used

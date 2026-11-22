@@ -8,6 +8,7 @@ import android.content.Intent
 import android.app.KeyguardManager
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.media.AudioManager
 import android.os.PowerManager
 import android.os.Build
 import android.os.Handler
@@ -104,7 +105,10 @@ class FocusAccessibilityService : AccessibilityService() {
     private var foregroundPkg: String? = null
     /** The essentials: never closed, never paused. */
     private lateinit var system: SystemApps
-    /** Apps the user chose to open after the pause: no second pause for a minute (uptime ms). */
+    /**
+     * Apps the user went on into after the pause (uptime ms): Long.MAX_VALUE while still in it, then
+     * no second pause for a minute after leaving it.
+     */
     private val pausePassedUntil = HashMap<String, Long>()
     /** The app whose pause screen is showing. */
     private var pausing: String? = null
@@ -156,6 +160,10 @@ class FocusAccessibilityService : AccessibilityService() {
                     if (watchChanged) applyWatchedPackages(s, r)
                     if (old != null && old.dailyGoalMinutes != s.dailyGoalMinutes) GoalWidget.refresh(this@FocusAccessibilityService)
                 }
+        }
+        scope.launch {
+            // A call notification (ringing or ongoing): out of the way at once, so it can be answered.
+            ServiceBridge.callNotified.collect { if (it) stepAsideForCall() }
         }
         scope.launch {
             reloadBase()
@@ -247,7 +255,7 @@ class FocusAccessibilityService : AccessibilityService() {
         val s = settings ?: return
         if (!s.onboardingComplete) return
         val inFront = event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-        if (inFront) onAppInFront(pkg, s)
+        if (inFront) onAppInFront(pkg, event.className?.toString(), s)
         val watched = WatchedApp.forPackage(pkg)
         when {
             watched != null -> {
@@ -372,8 +380,38 @@ class FocusAccessibilityService : AccessibilityService() {
         }
     }
 
-    /** Any app coming to the front (watched or not): the pause before opening, and the reminder's clock. */
-    private fun onAppInFront(pkg: String, s: AppSettings) {
+    /**
+     * A window came to the front (watched app or not): the pause before opening, the reminder's
+     * clock, and calls. Only a real app switch counts: keyboards, the notification shade, system
+     * dialogs, share sheets and text-selection popups open over the app in use without leaving it.
+     */
+    private fun onAppInFront(pkg: String, cls: String?, s: AppSettings) {
+        if (cls != null && CALL_SCREEN.containsMatchIn(cls)) {
+            onCallScreen(pkg)
+            return
+        }
+        if (pkg !in system.homes && !system.isLaunchable(pkg)) return
+        if (pkg != packageName) callScreenInFront = false
+        // Launchers send events of their own (gesture bar, widgets, a long-press) while an app stays
+        // in front. Home counts only once it really is in front.
+        if (pkg in system.homes && foregroundPkg != null && activePackage() == foregroundPkg) {
+            main.removeCallbacks(homeCheck)
+            main.postDelayed(homeCheck, HOME_CHECK_MS)
+            return
+        }
+        switchTo(pkg, s)
+    }
+
+    private val homeCheck = Runnable {
+        val s = settings ?: return@Runnable
+        val front = activePackage() ?: return@Runnable
+        if (front in system.homes) switchTo(front, s)
+    }
+
+    private fun activePackage(): String? =
+        rootInActiveWindow?.let { r -> r.packageName?.toString().also { SnapshotBuilder.recycle(r) } }
+
+    private fun switchTo(pkg: String, s: AppSettings) {
         // Home, Back or Recents during a pause leaves that app: the pause goes with it.
         val paused = pausing
         if (paused != null && pkg != paused && (pkg in system.homes || pkg !in system.neverPause)) {
@@ -381,22 +419,90 @@ class FocusAccessibilityService : AccessibilityService() {
             overlay.dismiss()
         }
         if (pkg in system.neverPause) {
-            if (pkg in system.homes) foregroundPkg = null // Back home: the next app opened is a fresh open.
+            if (pkg in system.homes) {
+                // Back home: the next app opened is a fresh open.
+                foregroundPkg?.let(::endPass)
+                foregroundPkg = null
+                refreshWidgetsAtHome()
+            }
             return
         }
         if (pkg == foregroundPkg) return
+        foregroundPkg?.let(::endPass)
         foregroundPkg = pkg
         restartReminder()
         pauseBeforeOpening(pkg, s)
     }
 
+    /** An app gone through the pause stays open while in use; once left, it opens without one for a minute. */
+    private fun endPass(pkg: String) {
+        if (pausePassedUntil[pkg] == Long.MAX_VALUE) pausePassedUntil[pkg] = SystemClock.uptimeMillis() + PAUSE_GRACE_MS
+    }
+
+    /** Home is where the widgets are seen: redraw them on the way there (at most every half minute). */
+    private var widgetsAt = 0L
+    private fun refreshWidgetsAtHome() {
+        val nowUp = SystemClock.uptimeMillis()
+        if (widgetsAt > 0 && nowUp - widgetsAt < WIDGET_REFRESH_MS) return
+        widgetsAt = nowUp
+        ScreenTimeWidget.refresh(this)
+    }
+
+    // ---------------------------------------------------------------- calls
+
+    /** The window in front is a call screen: the phone's, or WhatsApp's, Signal's, Messenger's, … */
+    private var callScreenInFront = false
+    private val audio by lazy { getSystemService(AudioManager::class.java) }
+
+    /**
+     * A call is ringing or under way: the pause, the reminder and app closures stay out of its way,
+     * so it can always be answered. From the call screen, the call notification, or the audio mode.
+     */
+    private fun inCall(): Boolean =
+        callScreenInFront || ServiceBridge.callNotified.value ||
+            (audio?.mode ?: AudioManager.MODE_NORMAL).let { it != AudioManager.MODE_NORMAL && it != AudioManager.MODE_INVALID }
+
+    private fun onCallScreen(pkg: String) {
+        callScreenInFront = true
+        stepAsideForCall()
+        // An app's own call screen (WhatsApp, …): the app counts as opened, with no pause afterwards.
+        if (pkg in system.neverPause || pkg == foregroundPkg) return
+        foregroundPkg?.let(::endPass)
+        foregroundPkg = pkg
+        pausePassedUntil[pkg] = Long.MAX_VALUE
+        restartReminder()
+    }
+
+    /** Lifts the pause, the reminder or the lock screen so a call can be answered (covers lift by themselves). */
+    private fun stepAsideForCall() {
+        if (!overlay.isShowing || overlay.isCover) return
+        pausing?.let { pausePassedUntil[it] = Long.MAX_VALUE }
+        pausing = null
+        overlay.dismiss()
+        lastShownAt = SystemClock.uptimeMillis()
+    }
+
+    /** While a card is up, watch for a call arriving (a heads-up call sits underneath the overlay). */
+    private val callWatch = object : Runnable {
+        override fun run() {
+            if (!overlay.isShowing || overlay.isCover) return
+            if (inCall()) stepAsideForCall() else main.postDelayed(this, CALL_WATCH_MS)
+        }
+    }
+
+    private fun watchForCalls() {
+        main.removeCallbacks(callWatch)
+        main.postDelayed(callWatch, CALL_WATCH_MS)
+    }
+
     /**
      * The optional pause each time an app is opened: 10 seconds to decide. Skipped when the app is
-     * closed anyway (the lock screen says why), or when the user went on through it a minute ago.
+     * closed anyway (the lock screen says why), during a call, while the user is still in an app they
+     * went on into, and for a minute after leaving it.
      */
     private fun pauseBeforeOpening(pkg: String, s: AppSettings) {
         if (!s.openPause.appliesTo(pkg) || !system.isLaunchable(pkg) || overlay.isShowing) return
-        if (runtime?.emergencyActive(System.currentTimeMillis()) == true) return
+        if (runtime?.emergencyActive(System.currentTimeMillis()) == true || inCall()) return
         val nowUp = SystemClock.uptimeMillis()
         if ((pausePassedUntil[pkg] ?: 0L) > nowUp) return
         if (wholeAppDecision(pkg, s) is Decision.Block) return
@@ -406,7 +512,7 @@ class FocusAccessibilityService : AccessibilityService() {
             InterventionActions(
                 onDismiss = {
                     pausing = null
-                    pausePassedUntil[pkg] = SystemClock.uptimeMillis() + PAUSE_GRACE_MS
+                    pausePassedUntil[pkg] = Long.MAX_VALUE
                     dismissLockScreen()
                 },
                 onLeave = {
@@ -419,6 +525,7 @@ class FocusAccessibilityService : AccessibilityService() {
         )
         pausing = pkg
         lastShownAt = nowUp
+        watchForCalls()
     }
 
     private fun labelOf(pkg: String): String =
@@ -529,7 +636,7 @@ class FocusAccessibilityService : AccessibilityService() {
     private fun nudgeIfDue(s: AppSettings, now: Long) {
         val every = s.reminderEveryMinutes
         val pkg = foregroundPkg ?: return
-        if (every <= 0) return
+        if (every <= 0 || inCall()) return
         if (nextReminderMin < every) nextReminderMin = every
         val inAppMin = ((now - inAppSince) / 60_000L).toInt()
         if (inAppMin >= nextReminderMin) {
@@ -552,6 +659,7 @@ class FocusAccessibilityService : AccessibilityService() {
             ),
         )
         lastShownAt = SystemClock.uptimeMillis()
+        watchForCalls()
     }
 
     // ---------------------------------------------------------------- YouTube, Facebook, Snapchat, TikTok, X, Reddit, Instagram Lite
@@ -785,6 +893,8 @@ class FocusAccessibilityService : AccessibilityService() {
     private fun block(d: Decision.Block, s: AppSettings, appLabel: String) {
         val nowUp = SystemClock.uptimeMillis()
         if (nowUp - lastShownAt < MIN_REBLOCK_MS || overlay.isShowing) return
+        // A whole app is never closed mid-call (a WhatsApp call during quiet hours, say).
+        if (d.redirect == Redirect.LEAVE_APP && inCall()) return
         lastShownAt = nowUp
         reelTracker.reset()
         // A whole app closed (not a section, not the Settings guard): emergency access is offered.
@@ -795,6 +905,7 @@ class FocusAccessibilityService : AccessibilityService() {
             emergencyLeft = if (offerEmergency) runtime?.emergencyLeft(LocalDate.now()) ?: 0 else null,
         )
         overlay.show(state, s.theme, InterventionActions(onDismiss = ::dismissLockScreen, onEmergency = { startEmergency(blockedPkg) }))
+        watchForCalls()
         redirect(d.redirect)
     }
 
@@ -1154,6 +1265,11 @@ class FocusAccessibilityService : AccessibilityService() {
         const val NAV_ATTEMPTS = 4
         const val PAUSE_GRACE_MS = 60_000L
         const val PHONE_CHECK_MS = 30_000L
+        const val HOME_CHECK_MS = 600L
+        const val CALL_WATCH_MS = 1_000L
+        const val WIDGET_REFRESH_MS = 30_000L
+        /** Call screens, by activity class: InCallActivity, WhatsApp's VoipActivity, Signal's WebRtcCallActivity, … */
+        val CALL_SCREEN = Regex("(?i)(incall|voip|webrtc|calling|callactivity|callscreen|ringing|incomingcall)")
         /** Follow-up looks after a move, for screens that finish loading late. */
         val RECHECK_DELAYS_MS = longArrayOf(700L, 1_500L, 3_000L)
         const val SNAP_BACK_ATTEMPTS = 2
